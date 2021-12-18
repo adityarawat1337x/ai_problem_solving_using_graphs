@@ -11,14 +11,11 @@ import {
   Td,
   TableCaption,
 } from "@chakra-ui/react";
-import RMovies from "./RMovies";
 
-const Movies = (uid) => {
+const RMovies = (uid) => {
   const [query, setState] = useState(
-    "match (u:Users)-[r:RATED]->(m:Movies) where u.user_id=$id return m,r limit 200"
+    "match (u:Users)-[r:RATED]->(m:Movies)<-[r2:RATED]-(u2:Users) where u.user_id=$id and r.Rating='5' and r2.Rating='5'  with u2, r, u, m, r2 match (m2:Movies)<-[r3:RATED]-(u2) where r3.Rating='5' and  not EXISTS((u)-[:RATED]->(m2))  return distinct  m2, r3"
   );
-
-  const [flag, setFlag] = useState(false);
 
   console.log("ReRENDERED: ", query, uid.uid);
 
@@ -56,8 +53,7 @@ const Movies = (uid) => {
       });
     });
   }
-
-  if (movieData && !flag)
+  if (movieData)
     return (
       <Flex
         w="100vw"
@@ -66,20 +62,6 @@ const Movies = (uid) => {
         flexDirection="column"
         p={100}
       >
-        <Button
-          colorScheme="telegram"
-          variant="solid"
-          alignItems="center"
-          justifyContent="center"
-          fontSize="1xl"
-          m={30}
-          color="black"
-          onClick={() => {
-            setFlag(true);
-          }}
-        >
-          Genrate Recommendations
-        </Button>
         <Table variant="simple" m={100}>
           <TableCaption>Dataset of movies</TableCaption>
           <Thead>
@@ -103,7 +85,6 @@ const Movies = (uid) => {
         </Table>
       </Flex>
     );
-  else return <RMovies uid={uid} />;
 };
 
-export default Movies;
+export default RMovies;
