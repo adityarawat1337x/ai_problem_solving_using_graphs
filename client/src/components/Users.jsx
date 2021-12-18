@@ -1,7 +1,7 @@
 import { React, useState } from "react";
 import { useReadCypher } from "use-neo4j";
-import { Grid, GridItem, Box, Button, Center } from "@chakra-ui/react";
-import { Flex, Spacer } from "@chakra-ui/react";
+import { Grid, GridItem, Box, Button, Heading } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import Movies from "./Movies";
 import Avatar from "react-avatar";
 
@@ -34,14 +34,20 @@ const Users = () => {
       ></Button>
     );
 
-  if (records) console.log(records);
-
   if (uid != -1) {
     return <Movies uid={uid} />;
   }
 
   return (
-    <Flex w="100vw" justifyContent="center" p={100}>
+    <Flex
+      w="100vw"
+      justifyContent="center"
+      alignItems="center"
+      flexDirection="column"
+      p={100}
+    >
+      <Heading>Movie Recommendation</Heading>
+      <Heading fontSize="lg">Select a user 👇</Heading>
       <Grid
         templateColumns="repeat(7, 1fr)"
         bg="white"
@@ -50,6 +56,7 @@ const Users = () => {
         overflow="scroll"
         p={50}
         borderRadius="10"
+        m={50}
       >
         {records &&
           records.map((row) => {
@@ -64,7 +71,7 @@ const Users = () => {
                   maxW="sm"
                   borderWidth="1px"
                   overflow="hidden"
-                  bg="#e4e4e4"
+                  bg="#3b4152"
                   textAlign="center"
                   p={2}
                   borderRadius="10"
@@ -77,9 +84,9 @@ const Users = () => {
                     mt="1"
                     fontWeight="semibold"
                     as="h4"
+                    color="#ffffff"
                     lineHeight="tight"
                     textTransform="capitalize"
-                    color="gray.900"
                   >
                     {row.get("u").properties.occupation}
                   </Box>

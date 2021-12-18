@@ -1,6 +1,6 @@
 import { React, useState } from "react";
 import { useReadCypher } from "use-neo4j";
-import { Grid, GridItem, Flex, Button, Center } from "@chakra-ui/react";
+import { Flex, Button, Heading } from "@chakra-ui/react";
 import {
   Table,
   Thead,
@@ -15,12 +15,10 @@ import RMovies from "./RMovies";
 
 const Movies = (uid) => {
   const [query, setState] = useState(
-    "match (u:Users)-[r:RATED]->(m:Movies) where u.user_id=$id return m,r limit 200"
+    "match (u:Users)-[r:RATED]->(m:Movies) where u.user_id=$id return u,m,r limit 200"
   );
 
   const [flag, setFlag] = useState(false);
-
-  console.log("ReRENDERED: ", query, uid.uid);
 
   const { loading, error, records, first } = useReadCypher(query, {
     id: uid.uid,
@@ -46,18 +44,19 @@ const Movies = (uid) => {
     );
 
   if (records) {
-    console.log(records);
+    console.log(first);
     records.map((row) => {
       movieData.push({
         id: row.get("m").properties.movie_id,
         name: row.get("m").properties.movie_title,
         date: row.get("m").properties.release_date,
         rating: row.get("r").properties.Rating,
+        url: row.get("m").properties.IMDb_URL,
       });
     });
   }
 
-  if (movieData && !flag)
+  if (movieData.length && !flag)
     return (
       <Flex
         w="100vw"
@@ -66,6 +65,9 @@ const Movies = (uid) => {
         flexDirection="column"
         p={100}
       >
+        <Heading>Occupation: {first.get("u").properties.occupation}</Heading>
+        <Heading>Age: {first.get("u").properties.Age}</Heading>
+        <Heading>Gender: {first.get("u").properties.Gender}</Heading>
         <Button
           colorScheme="telegram"
           variant="solid"
@@ -78,8 +80,9 @@ const Movies = (uid) => {
             setFlag(true);
           }}
         >
-          Genrate Recommendations
+          Generate Recommendations
         </Button>
+
         <Table variant="simple" m={100}>
           <TableCaption>Dataset of movies</TableCaption>
           <Thead>
@@ -88,6 +91,7 @@ const Movies = (uid) => {
               <Th>Movie Name</Th>
               <Th>Release Date</Th>
               <Th>Rating</Th>
+              <Th>Url</Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -97,6 +101,9 @@ const Movies = (uid) => {
                 <Td>{dt.name}</Td>
                 <Td>{dt.date}</Td>
                 <Td>{dt.rating}</Td>
+                <Td>
+                  <a href={dt.url}>🔗</a>
+                </Td>
               </Tr>
             ))}
           </Tbody>

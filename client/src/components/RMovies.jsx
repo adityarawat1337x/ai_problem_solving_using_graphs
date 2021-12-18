@@ -13,7 +13,7 @@ import {
 
 const RMovies = (uid) => {
   const query =
-    " match (u:Users)-[r:RATED]->(m:Movies)<-[r2:RATED]-(u2:Users) where u.user_id=$id and r.Rating='5' and r2.Rating='5'  with u2, r, u, m, r2 match (m2:Movies)<-[r3:RATED]-(u2) where r3.Rating='5' and not EXISTS((u)-[:RATED]->(m2)) return distinct m2,r3 limit 200";
+    " match (u:Users)-[r:RATED]->(m:Movies)<-[r2:RATED]-(u2:Users) where u.user_id=$id and r.Rating='5' and r2.Rating='5'  with u2, r, u, m, r2 match (m2:Movies)<-[r3:RATED]-(u2) where  not EXISTS((u)-[:RATED]->(m2)) return distinct m2,r3 order by r3.Rating desc limit 200";
 
   console.log("ReRENDERED: ", query, uid.uid);
 
@@ -47,6 +47,7 @@ const RMovies = (uid) => {
         id: row.get("m2").properties.movie_id,
         name: row.get("m2").properties.movie_title,
         date: row.get("m2").properties.release_date,
+        url: row.get("m2").properties.IMDb_URL,
         rating: row.get("r3").properties.Rating,
       });
     });
@@ -70,6 +71,7 @@ const RMovies = (uid) => {
               <Th>Movie Name</Th>
               <Th>Release Date</Th>
               <Th>Rating</Th>
+              <Th>Url</Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -79,6 +81,9 @@ const RMovies = (uid) => {
                 <Td>{dt.name}</Td>
                 <Td>{dt.date}</Td>
                 <Td>{dt.rating}</Td>
+                <Td>
+                  <a href={dt.url}>🔗</a>
+                </Td>
               </Tr>
             ))}
           </Tbody>
