@@ -1,0 +1,156 @@
+insert {name:'adi'} into friends
+
+return document('friends/290')
+
+for fr in friends
+    return fr
+[
+  {
+    "_key": "280",
+    "_id": "friends/280",
+    "_rev": "_daKp9ze---",
+    "name": "adi"
+  },
+  {
+    "_key": "292",
+    "_id": "friends/292",
+    "_rev": "_daKqDMu---",
+    "name": "mohit"
+  },
+  {
+    "_key": "439",
+    "_id": "friends/439",
+    "_rev": "_daKsWim---",
+    "name": "pankaj"
+  },
+  {
+    "_key": "443",
+    "_id": "friends/443",
+    "_rev": "_daKsaNm---",
+    "name": "jitesh"
+  }
+]
+
+for friend in friends
+    filter  friend.name == 'adi'
+    return friend
+
+insert {_from:"friends/443",_to:"friends/280",rating:5} into hifives
+insert {_from:"friends/439",_to:"friends/280",rating:5} into hifives
+insert {_from:"friends/439",_to:"friends/292",rating:5} into hifives
+
+for friend in 1..1 outbound
+'friends/439' hifives
+    filter hifives.rating==5
+    return friend
+
+
+load csv with headers from
+'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJYHeTNF8LAO90xxJwWC5X2ao0S4wXTMy08riYjSVVcJviVdk9XILhh5fWWb0Dxuw15AswIjxmklLv/pub?gid=1977142354&single=true&output=csv'
+as Movies create
+(m1:Movies
+  {movie_id:Movies.movie_id,
+  movie_title:Movies.movie_title ,
+  release_date:Movies.release_date,
+  video_release_date:Movies.video_release_date,
+  IMDb_URL:Movies.IMDb_URL,
+  unknown:Movies.unknown,
+  Action:Movies.Action,
+  Adventure:Movies.Adventure,
+  Animation:Movies.Animation,
+  Children:Movies.Children,
+  Comedy:Movies.Comedy,
+  Crime:Movies.Crime,
+  Documentary:Movies.Documentary,
+  Drama:Movies.Drama,
+  Fantasy:Movies.Fantasy,
+  Film_Noir:Movies.Film_Noir,
+  Horror:Movies.Horror,
+  Musical:Movies.Musical,
+  Mystery:Movies.Mystery,
+  Romance:Movies.Romance,
+  Scifi:Movies.Scifi,
+  Thriller:Movies.Thriller,
+  War:Movies.War,
+  Western:Movies.Western
+  })
+
+
+load csv with headers from 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJYHeTNF8LAO90xxJwWC5X2ao0S4wXTMy08riYjSVVcJviVdk9XILhh5fWWb0Dxuw15AswIjxmklLv/pub?gid=252539475&single=true&output=csv'
+as Users create
+(m1:Users
+  {user_id:Users.user_id,
+  Age:Users.Age,
+  Gender:Users.Gender,
+  occupation:Users.occupation,
+  zip_code:Users.zip_code
+  }
+)
+
+
+load csv with headers from 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJYHeTNF8LAO90xxJwWC5X2ao0S4wXTMy08riYjSVVcJviVdk9XILhh5fWWb0Dxuw15AswIjxmklLv/pub?gid=1261163782&single=true&output=csv'
+as Ratings create
+(m1:Ratings
+  {user_id:Ratings.user_id,
+  item_id:Ratings.item_id,
+  Rating:Ratings.Rating,
+  Timestamp:Ratings.Timestamp
+  }
+)
+
+
+load csv with headers from 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJYHeTNF8LAO90xxJwWC5X2ao0S4wXTMy08riYjSVVcJviVdk9XILhh5fWWb0Dxuw15AswIjxmklLv/pub?gid=1261163782&single=true&output=csv'
+as Ratings
+MATCH (u:Users {user_id:Ratings.user_id})
+MATCH (m:Movies {movie_id:Ratings.item_id})
+MERGE (u)-[r:RATED]->(m)
+Set
+  r.user_id=Ratings.user_id,
+  r.item_id=Ratings.item_id,
+  r.Rating=Ratings.Rating,
+  r.Timestamp=Ratings.Timestamp
+
+
+match (u:Users)-[r:RATED]->(m:Movies)<-[r2:RATED]-(u2:Users) where u.user_id='56' and r.Rating='5' and r2.Rating='5' and exists { match (u3:Users)-[r3:RATED]->(m2:Movies) where u3.user_id=u2.user_id  } return m,u
+
+
+match (u:Users)-[r:RATED]->(m:Movies)<-[r2:RATED]-(u2:Users) where u.user_id='56' and r.Rating='5' and r2.Rating='5'
+    with u2
+    match (u3:Users)-[r3:RATED]->(m2:Movies) where u3.user_id=u2.user_id and r3.Rating='5' return m2,u2
+
+match (u:Users)-[r:RATED]->(m:Movies)<-[r2:RATED]-(u2:Users) where u.user_id='56' and r.Rating='5' and r2.Rating='5'
+    with u2
+    match (m2:Movies)<-[r2:RATED]-(u2) where r2.Rating='5' return m2 limit 10
+
+
+match (u:Users)-[r:RATED]->(m:Movies)<-[r2:RATED]-(u2:Users) where u.user_id='56' and r.Rating='5' and r2.Rating='5'
+    with u2,r,u,m,r2
+    match (m2:Movies)<-[r2:RATED]-(u2) where r2.Rating='5' return m2,u
+
+
+match (u:Users)-[r:RATED]->(m:Movies)<-[r2:RATED]-(u2:Users) where u.user_id='5' and r.Rating='5' and r2.Rating='5'
+    with u2,r,u,m,r2
+    match (m2:Movies)<-[r3:RATED]-(u2) where r3.Rating='5'
+        with m2,u2,u
+        match (u)-[r:RATED]->(m:Movies) where m2<>md return u,u2,m2
+
+
+
+match (u:Users)-[r:RATED]->(m:Movies)<-[r2:RATED]-(u2:Users) where u.user_id='18' and r.Rating='5' and r2.Rating='5'
+    with u2,r,u,m,r2
+    match (m2:Movies)<-[r3:RATED]-(u2) where r3.Rating='5'
+        with m2,u,u2
+        match (m3:Movies)<-[RATED]-(u) where not m3.movie_id=m2.movie_id
+        return u,u2,m2 limit 1000
+
+//final query
+
+match (u:Users)-[r:RATED]->(m:Movies)<-[r2:RATED]-(u2:Users) where u.user_id='130' and r.Rating='5' and r2.Rating='5'
+    with u2,r,u,m,r2
+    match (m2:Movies)<-[r3:RATED]-(u2) where r3.Rating='5' and  not EXISTS((u)-[:RATED]-(m2))
+        return m2,u limit 100
+
+match (u:Users)-[r:RATED]->(m:Movies)<-[r2:RATED]-(u2:Users) where u.user_id='239' and r.Rating='5' and r2.Rating='5'
+  with u2,r,u,m,r2
+  match (m2:Movies)<-[r3:RATED]-(u2) where r3.Rating='5' and  not EXISTS((u)-[:RATED]-(m2))
+      return  distinct  m2,  u
