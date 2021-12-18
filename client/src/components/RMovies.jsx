@@ -1,11 +1,10 @@
-import { React, useState } from "react";
+import { React } from "react";
 import { useReadCypher } from "use-neo4j";
-import { Grid, GridItem, Flex, Button, Center } from "@chakra-ui/react";
+import { Flex, Button, Heading } from "@chakra-ui/react";
 import {
   Table,
   Thead,
   Tbody,
-  Tfoot,
   Tr,
   Th,
   Td,
@@ -13,14 +12,13 @@ import {
 } from "@chakra-ui/react";
 
 const RMovies = (uid) => {
-  const [query, setState] = useState(
-    "match (u:Users)-[r:RATED]->(m:Movies)<-[r2:RATED]-(u2:Users) where u.user_id=$id and r.Rating='5' and r2.Rating='5'  with u2, r, u, m, r2 match (m2:Movies)<-[r3:RATED]-(u2) where r3.Rating='5' and  not EXISTS((u)-[:RATED]->(m2))  return distinct  m2, r3"
-  );
+  const query =
+    " match (u:Users)-[r:RATED]->(m:Movies)<-[r2:RATED]-(u2:Users) where u.user_id=$id and r.Rating='5' and r2.Rating='5'  with u2, r, u, m, r2 match (m2:Movies)<-[r3:RATED]-(u2) where r3.Rating='5' and not EXISTS((u)-[:RATED]->(m2)) return distinct m2,r3 limit 200";
 
   console.log("ReRENDERED: ", query, uid.uid);
 
   const { loading, error, records, first } = useReadCypher(query, {
-    id: uid.uid,
+    id: uid.uid.uid,
   });
 
   let movieData = [];
@@ -46,13 +44,14 @@ const RMovies = (uid) => {
     console.log(records);
     records.map((row) => {
       movieData.push({
-        id: row.get("m").properties.movie_id,
-        name: row.get("m").properties.movie_title,
-        date: row.get("m").properties.release_date,
-        rating: row.get("r").properties.Rating,
+        id: row.get("m2").properties.movie_id,
+        name: row.get("m2").properties.movie_title,
+        date: row.get("m2").properties.release_date,
+        rating: row.get("r3").properties.Rating,
       });
     });
   }
+
   if (movieData)
     return (
       <Flex
@@ -62,6 +61,7 @@ const RMovies = (uid) => {
         flexDirection="column"
         p={100}
       >
+        <Heading>Recommended Movies</Heading>
         <Table variant="simple" m={100}>
           <TableCaption>Dataset of movies</TableCaption>
           <Thead>
@@ -73,8 +73,8 @@ const RMovies = (uid) => {
             </Tr>
           </Thead>
           <Tbody>
-            {movieData.map((dt) => (
-              <Tr key={dt.id}>
+            {movieData.map((dt, index) => (
+              <Tr key={index}>
                 <Td>{dt.id}</Td>
                 <Td>{dt.name}</Td>
                 <Td>{dt.date}</Td>
